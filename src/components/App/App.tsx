@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import SearchBar from "../SearchBar/SearchBar";
 import css from "./App.module.css";
 import type { Movie } from "../../types/movie";
@@ -8,13 +8,22 @@ import Loader from "../Loader/Loader";
 import ErrorMessage from "../ErrorMessage/ErrorMessage";
 import toast, { Toaster } from "react-hot-toast";
 import MovieModal from "../MovieModal/MovieModal";
+import { useQuery } from "@tanstack/react-query";
 
 export default function App() {
-  const [movies, setMovies] = useState<Movie[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isError, setIsError] = useState(false);
+  const[searchQuery, setSearchQuery] = useState("");
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const {
+    data,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ["movies", searchQuery],
+    queryFn: ()=> fetchMovies(searchQuery),
+    enabled: !!searchQuery,
+  });
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => {
@@ -27,23 +36,18 @@ export default function App() {
     openModal();
   };
 
-  const handelSearch = async (queryValue: string) => {
-    setIsLoading(true);
-    setMovies([]);
-
-    try {
-      const response = await fetchMovies(queryValue);
-      if (response.results.length === 0) {
-        toast("No movies found for your request.");
-      }
-      setMovies(response.results);
-      setIsError(false);
-    } catch {
-      setIsError(true);
-    } finally {
-      setIsLoading(false);
-    }
+  const handelSearch = (queryValue: string) => {
+    if(!queryValue.trim()) return;
+    setSearchQuery(queryValue);
   };
+  useEffect(()=>{
+    if(data&& data.results.length === 0) {
+      toast("No movies found.");
+    }
+  }, [data]);
+
+  const movies = data?.results ??[];
+  
   return (
     <div className={css.app}>
       {isModalOpen && selectedMovie && (
