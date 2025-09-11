@@ -5,19 +5,21 @@ import axios from "axios";
 interface fetchMoviesResponse {
   results: Movie[];
   page: number;
+  total_pages: number;
 }
 
 export default async function fetchMovies(
-  queryValue: string
+  queryValue: string,
+  page: number = 1
 ): Promise<fetchMoviesResponse> {
   const response = await axios.get<fetchMoviesResponse>(
-    "https://api.themoviedb.org/3/search/movie?include_adult=false&language=en-US&page=1",
+    "https://api.themoviedb.org/3/search/movie",
     {
       params: {
         query: queryValue,
         include_adult: false,
         language: "en-US",
-        page: 1,
+        page,
       },
       headers: {
         Authorization: `Bearer ${myKey}`,
