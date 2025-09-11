@@ -42,7 +42,7 @@ export default function App() {
   };
   useEffect(() => {
     if (data && data.results.length === 0) {
-      toast("No movies found.");
+      toast("No movies found for your request.");
     }
   }, [data]);
 
